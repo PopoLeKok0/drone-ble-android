@@ -3063,6 +3063,10 @@ drawable ic_mtrl_chip_checked_black
 drawable ic_mtrl_chip_checked_circle
 drawable ic_mtrl_chip_close_circle
 drawable ic_search_black_24
+drawable ic_tab_connect
+drawable ic_tab_history
+drawable ic_tab_home
+drawable ic_tab_map
 drawable m3_avd_hide_password
 drawable m3_avd_show_password
 drawable m3_bottom_sheet_drag_handle
@@ -3512,6 +3516,7 @@ id parent
 id parentPanel
 id parentRelative
 id parent_matrix
+id parsedDataText
 id password_toggle
 id path
 id pathRelative
@@ -3951,6 +3956,7 @@ string icon_content_description
 string item_view_role_description
 string last_data_placeholder
 string last_data_waiting
+string logs_placeholder
 string m3_exceed_max_badge_text_suffix
 string m3_ref_typeface_brand_medium
 string m3_ref_typeface_brand_regular
@@ -4051,6 +4057,10 @@ string mtrl_switch_track_decoration_path
 string mtrl_switch_track_path
 string mtrl_timepicker_cancel
 string mtrl_timepicker_confirm
+string parsed_data_format
+string parsed_data_invalid
+string parsed_data_placeholder
+string parsed_data_waiting
 string password_toggle_content_description
 string path_password_eye
 string path_password_eye_mask_strike_through

@@ -100,6 +100,38 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        refreshMarkers();
+    }
+
+    private void refreshMarkers() {
+        if (googleMap == null) return;
+
+        // Clear existing dynamic markers (keep user pins if desired, but for now let's clear all for simplicity or add to list)
+        // For this implementation we will add new ones from the DetectionManager
+        
+        List<DetectionManager.DetectionData> detections = DetectionManager.getInstance().getDetections();
+        for (DetectionManager.DetectionData data : detections) {
+            LatLng pos = new LatLng(data.lat, data.lon);
+            Marker marker = googleMap.addMarker(new MarkerOptions()
+                    .position(pos)
+                    .title(data.type + " #" + data.id)
+                    .snippet("Lat: " + data.lat + ", Lng: " + data.lon));
+            if (marker != null) {
+                markers.add(marker);
+                marker.showInfoWindow(); // Show label automatically
+            }
+        }
+        
+        // If we have detections, zoom to the last one
+        if (!detections.isEmpty()) {
+            DetectionManager.DetectionData last = detections.get(detections.size() - 1);
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(last.lat, last.lon), 15f));
+        }
+    }
+    
+    @Override
     public void onMapReady(@NonNull GoogleMap map) {
         googleMap = map;
 
@@ -120,6 +152,9 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
 
         // Initial rectangular polygon similar to old default
         drawDefaultPolygon();
+        
+        // Load markers immediately once map is ready
+        refreshMarkers();
     }
 
     private void drawDefaultPolygon() {

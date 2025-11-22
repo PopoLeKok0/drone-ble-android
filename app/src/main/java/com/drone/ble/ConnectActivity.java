@@ -89,7 +89,8 @@ public class ConnectActivity extends AppCompatActivity {
             new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
     private static final Pattern DETECTION_PATTERN = Pattern.compile(
             "([A-Za-z_\\-]+)\\s*,\\s*(\\d+)\\s*,\\s*(-?\\d+(?:\\.\\d+)?)\\s*,\\s*(-?\\d+(?:\\.\\d+)?)");
-    private DetectionData lastDetection = null;
+    // private DetectionData lastDetection = null; // Removed local class usage
+    private DetectionManager.DetectionData lastDetection = null; // Use shared class
 
     private final BluetoothAdapter.LeScanCallback legacyLeScanCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
@@ -141,13 +142,13 @@ public class ConnectActivity extends AppCompatActivity {
         statusText = findViewById(R.id.statusText);
         dataText = findViewById(R.id.dataText);
         parsedDataText = findViewById(R.id.parsedDataText);
-        logText = findViewById(R.id.logText);
-        logScrollView = findViewById(R.id.logScrollView);
+        // logText = findViewById(R.id.logText); // Logs removed
+        // logScrollView = findViewById(R.id.logScrollView); // Logs removed
         loadingRing = findViewById(R.id.loadingRing);
         statusIndicator = findViewById(R.id.statusIndicator);
         resetDataDisplay();
         resetParsedDataDisplay();
-        resetLogDisplay();
+        // resetLogDisplay(); // Logs removed
         appendLog("Connect UI initialized");
 
         connectButton.setOnClickListener(v -> {
@@ -475,9 +476,7 @@ public class ConnectActivity extends AppCompatActivity {
 
                     runOnUiThread(() -> {
                         updateDataDisplay(hexString, value);
-                        Toast.makeText(ConnectActivity.this,
-                                "Received hex: " + hexString,
-                                Toast.LENGTH_SHORT).show();
+                        // Removed Toast to prevent UI blocking
                     });
                 }
             }
@@ -613,14 +612,14 @@ public class ConnectActivity extends AppCompatActivity {
         }
     }
 
-    private void showParsedData(DetectionData detection) {
+    private void showParsedData(DetectionManager.DetectionData detection) {
         lastDetection = detection;
         if (parsedDataText != null) {
             parsedDataText.setText(getString(R.string.parsed_data_format,
-                    detection.detectionType,
-                    detection.targetId,
-                    formatCoordinate(detection.latitude),
-                    formatCoordinate(detection.longitude)));
+                    detection.type,
+                    detection.id,
+                    formatCoordinate(detection.lat),
+                    formatCoordinate(detection.lon)));
         }
     }
 
@@ -629,47 +628,47 @@ public class ConnectActivity extends AppCompatActivity {
     }
 
     private void updateDataDisplay(String hexString, byte[] rawValue) {
-        if (dataText == null) {
-            return;
-        }
         hasReceivedData = true;
         String ascii = new String(rawValue, StandardCharsets.UTF_8).trim();
         boolean readable = isPrintable(ascii);
-        StringBuilder display = new StringBuilder();
-        display.append("Last data (hex): ").append(hexString);
-        if (readable && !ascii.isEmpty()) {
-            display.append("\nText: ").append(ascii);
-        }
-        dataText.setText(display.toString());
 
+        // Restore UI update for parsed data ONLY (no hex)
         if (readable && !ascii.isEmpty()) {
-            DetectionData detection = parseDetectionPayload(ascii);
+            DetectionManager.DetectionData detection = parseDetectionPayload(ascii);
             if (detection != null) {
                 showParsedData(detection);
-                appendLog("Parsed detection: " + detection.detectionType + " #" + detection.targetId
-                        + " @ " + formatCoordinate(detection.latitude) + ", " + formatCoordinate(detection.longitude));
+                appendLog("Parsed detection: " + detection.type + " #" + detection.id
+                        + " @ " + formatCoordinate(detection.lat) + ", " + formatCoordinate(detection.lon));
+                
+                // Save to shared manager
+                DetectionManager.getInstance().addDetection(detection.type, detection.id, detection.lat, detection.lon);
             } else {
                 showParsedDataInvalid();
                 appendLog("Payload received but parsing failed: \"" + ascii + "\"");
             }
         } else {
-            showAwaitingParsedData();
+            // showAwaitingParsedData();
         }
     }
 
-    private DetectionData parseDetectionPayload(String asciiPayload) {
+    private DetectionManager.DetectionData parseDetectionPayload(String asciiPayload) {
         if (asciiPayload == null || asciiPayload.isEmpty()) {
             return null;
         }
         Matcher matcher = DETECTION_PATTERN.matcher(asciiPayload);
-        DetectionData lastMatch = null;
+        DetectionManager.DetectionData lastMatch = null;
         while (matcher.find()) {
             try {
                 String type = matcher.group(1).trim();
                 int id = Integer.parseInt(matcher.group(2).trim());
-                double lat = Double.parseDouble(matcher.group(3).trim());
-                double lon = Double.parseDouble(matcher.group(4).trim());
-                lastMatch = new DetectionData(type, id, lat, lon);
+                // double lat = Double.parseDouble(matcher.group(3).trim());
+                // double lon = Double.parseDouble(matcher.group(4).trim());
+                
+                // Hardcoded coordinates as requested
+                double lat = 45.419506;
+                double lon = -75.678767;
+                
+                lastMatch = new DetectionManager.DetectionData(type, id, lat, lon);
             } catch (NumberFormatException ignored) {
             }
         }
@@ -684,6 +683,7 @@ public class ConnectActivity extends AppCompatActivity {
     }
 
     private void appendLog(String message) {
+        /* Logs Disabled in UI
         if (logText == null) {
             return;
         }
@@ -704,6 +704,7 @@ public class ConnectActivity extends AppCompatActivity {
         if (logScrollView != null) {
             logScrollView.post(() -> logScrollView.fullScroll(View.FOCUS_DOWN));
         }
+        */
     }
 
     private boolean isPrintable(String input) {
@@ -740,6 +741,7 @@ public class ConnectActivity extends AppCompatActivity {
         stopScanning();
     }
 
+    /*
     private static class DetectionData {
         final String detectionType;
         final int targetId;
@@ -753,6 +755,7 @@ public class ConnectActivity extends AppCompatActivity {
             this.longitude = longitude;
         }
     }
+    */
 }
 
 
